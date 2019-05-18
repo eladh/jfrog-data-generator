@@ -1,5 +1,5 @@
 ARG REGISTRY
-FROM ${REGISTRY}java:8
+FROM ${REGISTRY}openjdk:8
 # Install needed tools, including CLI
 RUN apt-get update && apt-get install -y curl unzip
 RUN curl -OL https://bintray.com/artifact/download/groovy/maven/apache-groovy-binary-2.4.14.zip
