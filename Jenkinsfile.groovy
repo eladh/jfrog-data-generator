@@ -27,7 +27,7 @@ podTemplate(label: 'jenkins-pipeline' , cloud: 'k8s' , containers: [
                 for (packageType in [ 'npm' ]) {
                     docker.withRegistry("https://docker.$rtIpAddress", 'artifactorypass') {
                         sh("chmod 777 /var/run/docker.sock")
-                        sh("cp -rf shared/* $packageType/. ")
+                        sh("cp -rf shared/* packages/$packageType/. ")
                         def dockerImageTag = "docker.$rtIpAddress/$packageType:${env.BUILD_NUMBER}"
 
                         buildInfo.env.capture = true
