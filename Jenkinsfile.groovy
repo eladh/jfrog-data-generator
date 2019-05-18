@@ -31,7 +31,7 @@ podTemplate(label: 'jenkins-pipeline' , cloud: 'k8s' , containers: [
                         def dockerImageTag = "docker.$rtIpAddress/$packageType:latest"
 
                         buildInfo.env.capture = true
-                        docker.build(dockerImageTag, "./packages/$packageType")
+                        docker.build(dockerImageTag, "--build-arg REGISTRY='' ./packages/$packageType")
 
                         rtDocker.push(dockerImageTag, "docker-local", buildInfo)
                         server.publishBuildInfo buildInfo
