@@ -28,10 +28,10 @@ podTemplate(label: 'jenkins-pipeline' , cloud: 'k8s' , containers: [
                     docker.withRegistry("https://docker.$rtIpAddress", 'artifactorypass') {
                         sh("chmod 777 /var/run/docker.sock")
                         sh("cp -rf shared/* packages/$packageType/. ")
-                        def dockerImageTag = "docker.$rtIpAddress/$packageType:${env.BUILD_NUMBER}"
+                        def dockerImageTag = "docker.$rtIpAddress/$packageType:latest"
 
                         buildInfo.env.capture = true
-                        docker.build(dockerImageTag, "--build-arg DOCKER_REGISTRY_URL=docker.$rtIpAddress .")
+                        docker.build(dockerImageTag, "./packages/$packageType")
 
                         rtDocker.push(dockerImageTag, "docker-local", buildInfo)
                         server.publishBuildInfo buildInfo
