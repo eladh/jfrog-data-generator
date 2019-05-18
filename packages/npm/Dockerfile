@@ -1,5 +1,4 @@
-ARG REGISTRY
-FROM ${REGISTRY}openjdk:8
+FROM openjdk:8
 # Install needed tools, including CLI
 RUN apt-get update && apt-get install -y curl unzip
 

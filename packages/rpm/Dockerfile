@@ -1,5 +1,4 @@
-ARG REGISTRY
-FROM ${REGISTRY}centos:6.9
+FROM centos:6.9
 # Install needed tools, including CLI
 RUN yum update -y && yum install -y tar bc java java-devel curl unzip rpm-build rpmdevtools
 RUN curl -OL https://bintray.com/artifact/download/groovy/maven/apache-groovy-binary-2.4.14.zip

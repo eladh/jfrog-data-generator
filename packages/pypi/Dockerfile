@@ -1,5 +1,4 @@
-ARG REGISTRY
-FROM ${REGISTRY}java:8
+FROM java:8
 # Install needed tools, including CLI
 RUN apt-get update && apt-get install -y curl unzip
 RUN curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py" && python get-pip.py && pip install twine

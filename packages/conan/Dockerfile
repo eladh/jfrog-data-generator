@@ -1,5 +1,4 @@
-ARG REGISTRY
-FROM ${REGISTRY}java:8
+FROM java:8
 # Install needed tools, including CLI
 RUN apt-get update && apt-get install -y curl cmake unzip software-properties-common python3-pip
 RUN pip3 install -U setuptools
