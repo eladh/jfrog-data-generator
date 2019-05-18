@@ -24,7 +24,7 @@ podTemplate(label: 'jenkins-pipeline' , cloud: 'k8s' , containers: [
             def rtDocker = Artifactory.docker server: server
 
             container('docker') {
-                for (packageType in [ 'npm', 'maven', 'generic' ]) {
+                for (packageType in [ 'npm' ]) {
                     docker.withRegistry("https://docker.$rtIpAddress", 'artifactorypass') {
                         sh("chmod 777 /var/run/docker.sock")
                         sh("cp -rf shared/* $packageType/. ")
@@ -44,9 +44,9 @@ podTemplate(label: 'jenkins-pipeline' , cloud: 'k8s' , containers: [
 
 
 void setNewProps() {
-    if  (params.XRAY_SCAN == null) {
-        properties([parameters([string(name: 'XRAY_SCAN', defaultValue: 'NO')])])
-        currentBuild.result = 'SUCCESS'
-        error('Aborting the build to generate params')
-    }
+//    if  (params.XRAY_SCAN == null) {
+//        properties([parameters([string(name: 'XRAY_SCAN', defaultValue: 'NO')])])
+//        currentBuild.result = 'SUCCESS'
+//        error('Aborting the build to generate params')
+//    }
 }
