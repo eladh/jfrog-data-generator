@@ -44,7 +44,7 @@ build_package() {
     cd $PACKAGE_DIR
     IMAGE_NAME=$IMAGE_NAMESPACE_NAME/$PACKAGE_TO_BUILD
     docker build -t "$IMAGE_NAME-generator:$VERSION" .
-    docker push "$IMAGE_NAME-generator:$VERSION"
+#    docker push "$IMAGE_NAME-generator:$VERSION"
 }
 build_packages() {
     # If no package set, do all

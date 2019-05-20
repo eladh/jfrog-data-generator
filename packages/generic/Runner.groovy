@@ -16,7 +16,7 @@ class GenerateGeneric extends Generator {
     // User input
     def artifactoryUrl, artifactoryUser, artifactoryPassword, repoKey, rootDir, packagePrefix, packageExtension,
             packageProperties
-    Integer numOfThreads, numOfPackages, minSize, maxSize
+    Integer numOfThreads, numOfPackages, minSize, maxSize , packagesDuplicationRate ,packageMaxCloneLevel
     synchronized def passed = true
 
     /**
@@ -35,29 +35,49 @@ They will range in size from $minSize to $maxSize bytes and have the format $pac
         GParsPool.withPool numOfThreads, {
             0.step numOfPackages, numOfThreads, {
                 def batch_start = it
+                def max_duplicates = packagesDuplicationRate > 0 ? numOfPackages * (packagesDuplicationRate/100) : 0
                 File batchDir = new File("tmp/generator/$batch_start")
+                for (def i = 0; i < packageMaxCloneLevel; i++) {
+                    new File("tmp/generator/$batch_start-duplicates-$i").mkdirs()
+                }
                 batchDir.mkdirs()
                 // A batch of files is equal to the number of threads the user has asked for
                 (batch_start..(Math.min(batch_start+numOfThreads, numOfPackages) - 1)).eachParallel { id ->
-                    File addFile = new File(batchDir, "$packagePrefix$id.$packageExtension")
+                    def artifactName = "$packagePrefix$id.$packageExtension"
+                    File addFile = new File(batchDir, artifactName)
                     int fileSize = (maxSize == minSize) ? minSize : Math.abs(random.nextLong() % (maxSize - minSize)) + minSize
                     HelperTools.createBinFile(addFile, fileSize)
+                    if (id < max_duplicates) {
+                        for (def i = 0; i <Math.abs(random.nextLong() % (packageMaxCloneLevel-1)) + 1; i++) {
+                            FileUtils.copyFile(addFile ,new File("tmp/generator/$batch_start-duplicates-$i/$artifactName"))
+                        }
+                    }
                     println("$OUTPUT_PREFIX $ADD_PREFIX $repoKey/$rootDir/$packagePrefix$id.$packageExtension ${HelperTools.getFileSha1(addFile)}")
                 }
                 // Upload the batch of files
-                long buildNumber = System.currentTimeMillis()
-                String cmd = "jfrog rt upload " +
-                        "--server-id=art " +
-                        "--flat=true --threads=${numOfThreads} " +
-                        "--build-name=dummy-project --build-number=${buildNumber} --props=${packageProperties} " +
-                        "${batchDir}/ " +
-                        "$repoKey/$rootDir/"
-                println cmd
-                passed &= HelperTools.executeCommandAndPrint(cmd) == 0 ? true : false
+                uploadArtifacts(batchDir ,"$repoKey/$rootDir/")
+                for (def i = 0; i < packageMaxCloneLevel; i++) {
+                    def dupTargetDir = new File("tmp/generator/$batch_start-duplicates-$i/")
+                    uploadArtifacts(dupTargetDir,"$repoKey/$rootDir/duplicate-$i/")
+                    FileUtils.deleteDirectory(dupTargetDir)
+                }
                 FileUtils.deleteDirectory(batchDir)
             }
         }
         return passed
+    }
+
+    private void uploadArtifacts(File batchDir ,targetPath) {
+        long buildNumber = System.currentTimeMillis()
+        String cmd = "jfrog rt upload " +
+                "--server-id=art " +
+                "--flat=true --threads=${numOfThreads} " +
+                "--build-name=dummy-project --build-number=${buildNumber} --props=${packageProperties} " +
+                "${batchDir}/ " +
+                "$targetPath"
+        println cmd
+        passed &= HelperTools.executeCommandAndPrint(cmd) == 0 ? true : false
+        FileUtils.deleteDirectory(batchDir)
     }
 
     /**
@@ -141,6 +161,8 @@ They will range in size from $minSize to $maxSize bytes and have the format $pac
         artifactoryPassword = userInput.getUserInput("artifactory.password")
         repoKey = userInput.getUserInput("artifactory.repo")
         numOfPackages = userInput.getUserInput("package.number") as Integer
+        packagesDuplicationRate = userInput.getUserInput("packages.duplication.rate") as Integer
+        packageMaxCloneLevel = userInput.getUserInput("package.clone.max.level") as Integer
         rootDir = userInput.getUserInput("package.root.dir")
         if (rootDir.startsWith('/'))
             rootDir = rootDir.substring(1)
@@ -152,7 +174,6 @@ They will range in size from $minSize to $maxSize bytes and have the format $pac
         packageExtension = userInput.getUserInput("package.name.extension")
         packageProperties = userInput.getUserInput("package.properties")
         numOfThreads = userInput.getUserInput("generator.threads") as Integer
-        // TODO: Verify input
     }
 
 }

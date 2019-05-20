@@ -22,3 +22,7 @@ package.name.extension=data
 package.properties=generated=true
 # Number of worker threads
 generator.threads=8
+# Number packages duplication rate
+packages.duplication.rate=0
+# Number of same package clone level
+package.clone.max.level=0
